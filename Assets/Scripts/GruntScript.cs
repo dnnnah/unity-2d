@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GruntScript : MonoBehaviour
@@ -7,29 +5,34 @@ public class GruntScript : MonoBehaviour
     public Transform John;
     public GameObject BulletPrefab;
 
-    private int Health = 3;
+    private const float FireRate = 0.25f;
+    private const float AttackRange = 1.0f;
+    private const int MaxHealth = 3;
+
+    private int Health = MaxHealth;
     private float LastShoot;
 
-    void Update()
+    private void Update()
     {
         if (John == null) return;
 
-        Vector3 direction = John.position - transform.position;
-        if (direction.x >= 0.0f) transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-        else transform.localScale = new Vector3(-1.0f, 1.0f, 1.0f);
+        // Se orienta hacia John y dispara cuando está lo bastante cerca
+        float direction = John.position.x - transform.position.x;
+        float facing = direction >= 0.0f ? 1.0f : -1.0f;
+        transform.localScale = new Vector3(facing, 1.0f, 1.0f);
 
-        float distance = Mathf.Abs(John.position.x - transform.position.x);
-
-        if (distance < 1.0f && Time.time > LastShoot + 0.25f)
+        bool inRange = Mathf.Abs(direction) < AttackRange;
+        if (inRange && Time.time > LastShoot + FireRate)
         {
-            Shoot();
+            Shoot(facing);
             LastShoot = Time.time;
         }
     }
 
-    private void Shoot()
+    private void Shoot(float facing)
     {
-        Vector3 direction = new Vector3(transform.localScale.x, 0.0f, 0.0f);
+        Vector3 direction = new Vector3(facing, 0.0f, 0.0f);
+
         GameObject bullet = Instantiate(BulletPrefab, transform.position + direction * 0.1f, Quaternion.identity);
         bullet.GetComponent<BulletScript>().SetDirection(direction);
     }
